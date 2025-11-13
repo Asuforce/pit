@@ -1,0 +1,81 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pit_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: pit_development
+      MYSQL_USER: pit_user
+      MYSQL_PASSWORD: pit_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - pit_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: pit_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - pit_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 10s
+      retries: 5
+
+  rails:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pit_rails
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: mysql2://pit_user:pit_password@mysql:3306/pit_development
+      REDIS_URL: redis://redis:6379/0
+      DB_HOST: mysql
+      DB_USER: pit_user
+      DB_PASSWORD: pit_password
+      DB_PORT: 3306
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - bundle_cache:/usr/local/bundle
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pit_network
+    command: bundle exec rails s -b 0.0.0.0
+
+  adminer:
+    image: adminer:latest
+    container_name: pit_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - pit_network
+
+volumes:
+  mysql_data:
+  redis_data:
+  bundle_cache:
+
+networks:
+  pit_network:
+    driver: bridge

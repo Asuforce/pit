@@ -1,0 +1,39 @@
+source 'https://rubygems.org'
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
+ruby '3.2.0'
+
+gem 'rails', '~> 8.1.1'
+gem 'mysql2', '~> 0.5'
+gem 'puma', '~> 6.0'
+gem 'importmap-rails'
+gem 'turbo-rails'
+gem 'stimulus-rails'
+gem 'jbuilder', '~> 2.7'
+gem 'propshaft'
+gem 'redis', '~> 4.0'
+gem 'bcrypt', '~> 3.1.7'
+
+# GraphQL
+gem 'graphql', '~> 2.0'
+gem 'graphql-batch', '~> 0.5'
+
+# Performance monitoring
+gem 'rack-mini-profiler', '~> 2.3'
+gem 'bullet'
+
+# Caching and optimization
+gem 'kaminari'
+gem 'rack-cors'
+
+# Development/Test
+group :development, :test do
+  gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
+  gem 'rspec-rails'
+  gem 'factory_bot_rails'
+end
+
+group :development do
+  gem 'web-console', '>= 4.1.0'
+  gem 'listen', '~> 3.3'
+end
